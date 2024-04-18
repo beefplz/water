@@ -1,4 +1,4 @@
-package org.capstone.nursery;
+package org.capstone.water;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
