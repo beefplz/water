@@ -6,7 +6,6 @@ import org.capstone.water.repository.entity.pdo.PredictDo;
 import org.capstone.water.repository.entity.pdo.PredictDoRepository;
 import org.capstone.water.repository.entity.mldata.*;
 import org.capstone.water.repository.entity.waterdata.WaterMapping;
-import org.capstone.water.repository.entity.waterdata.Waterdata;
 import org.capstone.water.repository.entity.waterdata.WaterdataRepository;
 
 import org.springframework.stereotype.Service;

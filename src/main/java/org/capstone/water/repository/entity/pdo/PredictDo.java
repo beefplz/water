@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 //@IdClass(WaterId.class)
 public class PredictDo {
-    //@Id
+    @Id
     @Column(name = "time")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyyMMddHHmm", timezone = "Asia/Seoul")
     private LocalDateTime time;
@@ -26,7 +26,7 @@ public class PredictDo {
     // @ManyToOne
     // @JoinColumn(name = "fcid")
     // private Watertank watertank;
-    @Id
+
     @Column(name = "tankid")
     private String tankid;
 
