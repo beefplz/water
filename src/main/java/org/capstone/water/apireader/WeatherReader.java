@@ -14,6 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class WeatherReader {
@@ -44,12 +45,14 @@ public class WeatherReader {
             Float jap =  Float.parseFloat((String) jdata.get("air_press"));
             Short jtl = Short.parseShort((String) jdata.get("tide_level"));
 
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(1);
+            LocalDateTime today = LocalDateTime.of(now.getYear(),now.getMonth(), now.getDayOfMonth(), now.getHour(), now.getMinute(),0);
+            //String localDateTimeString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
 
+            //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            //LocalDateTime dateTime = LocalDateTime.parse(jtime, formatter);
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            LocalDateTime dateTime = LocalDateTime.parse(jtime, formatter);
-
-            return Weather.builder().time(dateTime).stl(jtl).swt(jwt).ssa(jsa).sat(jat).sap(jap).wdir(jwd).ws(jws).build();
+            return Weather.builder().time(today).stl(jtl).swt(jwt).ssa(jsa).sat(jat).sap(jap).wdir(jwd).ws(jws).build();
 
 
 

@@ -3,6 +3,7 @@ package org.capstone.water.apireader;
 import lombok.RequiredArgsConstructor;
 import org.capstone.water.repository.entity.waterdata.Waterdata;
 import org.capstone.water.repository.entity.waterdata.WaterdataRepository;
+import org.capstone.water.repository.entity.weather.Weather;
 import org.capstone.water.repository.entity.weather.WeatherRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +23,10 @@ public class Scheduler {
     public void run() {
 
         WeatherReader weatherReader = new WeatherReader();
-        weatherRepository.save(weatherReader.weatherRead());
-
+        Weather weathers = weatherReader.weatherRead();
+        if(!weatherRepository.existsByTime(weathers.getTime())){
+            weatherRepository.save(weatherReader.weatherRead());
+        }
 
         WaterReader waterReader = new WaterReader();
         List<Waterdata> waterdataList = waterReader.waterRead();
@@ -35,6 +38,5 @@ public class Scheduler {
             waterdataRepository.save(waterdataList.get(1));
             waterdataRepository.save(waterdataList.get(2));
         }
-
     }
 }
