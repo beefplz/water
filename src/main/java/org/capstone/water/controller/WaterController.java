@@ -2,6 +2,7 @@ package org.capstone.water.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.capstone.water.repository.entity.mldata.MldataView;
+import org.capstone.water.repository.entity.pdo.PdoMapping;
 import org.capstone.water.repository.entity.pdo.PredictDo;
 import org.capstone.water.repository.entity.waterdata.WaterMapping;
 import org.capstone.water.service.WaterServiceImpl;
@@ -31,8 +32,8 @@ public class WaterController {
     }
 
     @GetMapping("/pdo")
-    public ResponseEntity<List<PredictDo>> getPdo(@RequestParam String tankid){
-        List<PredictDo> predictDoList = service.getPdo(tankid);
+    public ResponseEntity<List<PdoMapping>> getPdo(@RequestParam String tankid){
+        List<PdoMapping> predictDoList = service.getPdo(tankid);
         return new ResponseEntity<>(predictDoList, HttpStatus.OK);
     }
 

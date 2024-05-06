@@ -2,6 +2,7 @@ package org.capstone.water.service;
 
 
 import lombok.RequiredArgsConstructor;
+import org.capstone.water.repository.entity.pdo.PdoMapping;
 import org.capstone.water.repository.entity.pdo.PredictDo;
 import org.capstone.water.repository.entity.pdo.PredictDoRepository;
 import org.capstone.water.repository.entity.mldata.*;
@@ -19,7 +20,7 @@ public class WaterServiceImpl {
     private final MldataViewRepository mldataViewRepository;
     private final WaterdataRepository waterdataRepository;
 
-    public List<PredictDo> getPdo(String tankid){
+    public List<PdoMapping> getPdo(String tankid){
         return predictDorepository.findPredictDosByTankid(tankid);
     }
 

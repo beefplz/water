@@ -18,15 +18,16 @@ import java.time.LocalDateTime;
 //@IdClass(WaterId.class)
 public class PredictDo {
     @Id
+    @Column(name = "num")
+    private Long num;
+
     @Column(name = "time")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyyMMddHHmm", timezone = "Asia/Seoul")
     private LocalDateTime time;
 
-
     // @ManyToOne
     // @JoinColumn(name = "fcid")
     // private Watertank watertank;
-
     @Column(name = "tankid")
     private String tankid;
 

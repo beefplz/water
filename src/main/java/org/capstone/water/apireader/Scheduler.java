@@ -3,12 +3,16 @@ package org.capstone.water.apireader;
 import lombok.RequiredArgsConstructor;
 import org.capstone.water.repository.entity.waterdata.Waterdata;
 import org.capstone.water.repository.entity.waterdata.WaterdataRepository;
+import org.capstone.water.repository.entity.weather.Weather;
 import org.capstone.water.repository.entity.weather.WeatherRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
@@ -21,14 +25,23 @@ public class Scheduler {
     @Scheduled(fixedRate = 60000)
     public void run() {
 
-        WeatherReader weatherReader = new WeatherReader();
-        weatherRepository.save(weatherReader.weatherRead());
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(1);
+        String localDateTimeString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        log.info(localDateTimeString);
 
+        WeatherReader weatherReader = new WeatherReader();
+        Weather weather = weatherReader.weatherRead(localDateTimeString);
+        if (weatherRepository.existsByTime(weather.getTime())){
+            log.info("weather already exist");
+        }
+        else {
+            weatherRepository.save(weather);
+        }
 
         WaterReader waterReader = new WaterReader();
-        List<Waterdata> waterdataList = waterReader.waterRead();
+        List<Waterdata> waterdataList = waterReader.waterRead(localDateTimeString);
         if (waterdataRepository.existsByTime(waterdataList.get(0).getTime())){
-            log.info("already exist");
+            log.info("water already exist");
         }
         else {
             waterdataRepository.save(waterdataList.get(0));

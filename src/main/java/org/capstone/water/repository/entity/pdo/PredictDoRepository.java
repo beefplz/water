@@ -7,6 +7,6 @@ import java.util.List;
 
 @Repository
 public interface PredictDoRepository extends JpaRepository<PredictDo, String> {
-    List<PredictDo> findPredictDosByTankid(String tankid);
+    List<PdoMapping> findPredictDosByTankid(String tankid);
 
 }

@@ -24,7 +24,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public class WaterReader {
-    public List<Waterdata> waterRead() {
+    public List<Waterdata> waterRead(String timeString) {
         final Logger log = LoggerFactory.getLogger(getClass());
         String result ="";
         log.info("water");
@@ -49,12 +49,12 @@ public class WaterReader {
             hashMap.put("pageNumber", 1);
             hashMap.put("fcltyIds", jsonarr);
 
-            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(1);
-            String localDateTimeString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-            log.info(localDateTimeString);
+            //LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(1);
+            //String localDateTimeString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+            //log.info(localDateTimeString);
 
-            hashMap.put("startDate", localDateTimeString);
-            hashMap.put("endDate", localDateTimeString);
+            hashMap.put("startDate", timeString);
+            hashMap.put("endDate", timeString);
 
             JSONObject jsonob = new JSONObject(hashMap);
 

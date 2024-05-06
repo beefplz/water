@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class WeatherReader {
-    public Weather weatherRead() {
+    public Weather weatherRead(String timeString) {
         final Logger log = LoggerFactory.getLogger(getClass());
         String result ="";
         log.info("weather");
@@ -35,7 +35,7 @@ public class WeatherReader {
             JSONObject jdata = (JSONObject) jresult.get("data");
             log.info(jdata.toJSONString());
 
-            String jtime = (String) jdata.get("record_time");
+            //String jtime = (String) jdata.get("record_time");
             Float jwt = Float.parseFloat((String) jdata.get("water_temp"));
             Short jwd = Short.parseShort((String) jdata.get("wind_dir"));
             Float jws = Float.parseFloat((String) jdata.get("wind_speed"));
@@ -46,8 +46,8 @@ public class WeatherReader {
 
 
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            LocalDateTime dateTime = LocalDateTime.parse(jtime, formatter);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime dateTime = LocalDateTime.parse(timeString, formatter);
 
             return Weather.builder().time(dateTime).stl(jtl).swt(jwt).ssa(jsa).sat(jat).sap(jap).wdir(jwd).ws(jws).build();
 
