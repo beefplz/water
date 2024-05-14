@@ -42,7 +42,7 @@ public class Scheduler {
         }
 
         WaterReader waterReader = new WaterReader();
-        List<Waterdata> waterdataList = waterReader.waterRead(localDateTimeString);
+        List<Waterdata> waterdataList = waterReader.waterRead(localDateTimeString, waterdataRepository);
         if (waterdataRepository.existsByTime(waterdataList.get(0).getTime())){
             log.info("water already exist");
         }
