@@ -2,6 +2,7 @@ package org.capstone.water.apireader;
 
 import lombok.RequiredArgsConstructor;
 import org.capstone.water.repository.entity.waterdata.Waterdata;
+import org.capstone.water.repository.entity.waterdata.WaterdataRepository;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -24,7 +25,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public class WaterReader {
-    public List<Waterdata> waterRead(String timeString) {
+    public List<Waterdata> waterRead(String timeString, WaterdataRepository waterdataRepository) {
         final Logger log = LoggerFactory.getLogger(getClass());
         String result ="";
         log.info("water");
@@ -77,15 +78,28 @@ public class WaterReader {
             JSONObject jsonIw1 = (JSONObject) jsonList.get(0);
             JSONObject jsonRt1 = (JSONObject) jsonList.get(1);
             JSONObject jsonRt2 = (JSONObject) jsonList.get(2);
+            log.info(jsonIw1.toString());
+            Float ph, sa;
+            if (jsonIw1.get("ph")==null){
+                log.info("nulllllllllllllll");
+                Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
+                ph= waterdataIw1.getPh();
+            }else {
+                ph = Float.parseFloat((String) jsonIw1.get("ph"));
+            }
+            if (jsonIw1.get("sa")==null){
+                log.info("nulllllllllllllll");
+                Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
+                sa= waterdataIw1.getSa();
+            }else {
+                sa = Float.parseFloat((String) jsonIw1.get("sa"));
+            }
 
-            Float ph = Float.parseFloat((String) jsonIw1.get("ph"));
-            Float sa = Float.parseFloat((String) jsonIw1.get("sa"));
+            Waterdata waterdata1 = getJsonToWaterdata(jsonIw1, ph, sa, waterdataRepository);
 
-            Waterdata waterdata1 = getJsonToWaterdata(jsonIw1, ph, sa);
+            Waterdata waterdata2 = getJsonToWaterdata(jsonRt1, ph, sa, waterdataRepository);
 
-            Waterdata waterdata2 = getJsonToWaterdata(jsonRt1, ph, sa);
-
-            Waterdata waterdata3 = getJsonToWaterdata(jsonRt2, ph, sa);
+            Waterdata waterdata3 = getJsonToWaterdata(jsonRt2, ph, sa, waterdataRepository);
 
             List<Waterdata> waterdataList = new ArrayList<>();
 
@@ -100,12 +114,23 @@ public class WaterReader {
         }
     }
 
-    private Waterdata getJsonToWaterdata(JSONObject json, Float ph, Float sa) {
+    private Waterdata getJsonToWaterdata(JSONObject json, Float ph, Float sa, WaterdataRepository waterdataRepository) {
         String date = (String) json.get("collectTime");
         String time = (String) json.get("collectDe");
         String tankid = json.get("tankId").toString().substring(6);
-        Float wt = Float.parseFloat((String) json.get("wt"));
-        Float wdo = Float.parseFloat((String) json.get("do1"));
+        Float wt, wdo;
+        if (json.get("wt")==null){
+            Waterdata waterdata =  waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid);
+            wt= waterdata.getWt();
+        }else {
+            wt = Float.parseFloat((String) json.get("wt"));
+        }
+        if (json.get("do1")==null){
+            Waterdata waterdata =  waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid);
+            wdo= waterdata.getWdo();
+        }else {
+            wdo = Float.parseFloat((String) json.get("do1"));
+        }
         String dtime = time + " " + date;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime dateTime = LocalDateTime.parse(dtime, formatter);
