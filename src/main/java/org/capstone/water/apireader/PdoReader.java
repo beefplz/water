@@ -14,9 +14,9 @@ public class PdoReader {
 
         List<PredictDo> pdoList = new ArrayList<>();
 
-        PredictDo pdo1 = PredictDo.builder().num(null).time(dateTime).pdo(4.3F).tankid("IW1").build();
-        PredictDo pdo2 = PredictDo.builder().num(null).time(dateTime).pdo(4.3F).tankid("RT1").build();
-        PredictDo pdo3 = PredictDo.builder().num(null).time(dateTime).pdo(4.3F).tankid("RT2").build();
+        PredictDo pdo1 = PredictDo.builder().num(null).time(dateTime).pdo(8.3F).tankid("IW1").build();
+        PredictDo pdo2 = PredictDo.builder().num(null).time(dateTime).pdo(8.3F).tankid("RT1").build();
+        PredictDo pdo3 = PredictDo.builder().num(null).time(dateTime).pdo(8.3F).tankid("RT2").build();
 
         pdoList.add(pdo1);
         pdoList.add(pdo2);

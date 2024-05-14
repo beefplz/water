@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 //@IdClass(WaterId.class)
 public class PredictDo {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "num")
     private Long num;
 

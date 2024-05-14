@@ -25,11 +25,11 @@ public class WaterController {
         return new ResponseEntity<>(mldataViewList, HttpStatus.OK);
     }
 
-    @GetMapping("/test")
+    /*@GetMapping("/test")
     public ResponseEntity<List<WaterMapping>> getWaterdata(@RequestParam String tankid){
         List<WaterMapping> waterdataList = service.getWaterdata(tankid);
         return new ResponseEntity<>(waterdataList, HttpStatus.OK);
-    }
+    }*/
 
     @GetMapping("/pdo")
     public ResponseEntity<List<PdoMapping>> getPdo(@RequestParam String tankid){
@@ -39,7 +39,7 @@ public class WaterController {
 
     @GetMapping("/water")
     public ResponseEntity<List<WaterMapping>> getTest(@RequestParam String tankid){
-        List<WaterMapping> waterdataList = service.getWaterdataTest(tankid);
+        List<WaterMapping> waterdataList = service.getWaterdata(tankid);
         return new ResponseEntity<>(waterdataList, HttpStatus.OK);
     }
 }

@@ -28,11 +28,11 @@ public class WaterServiceImpl {
         return mldataViewRepository.findMldataViewsByTankid(tankid);
     }
 
-    public List<WaterMapping> getWaterdata(String tankid){
+    /*public List<WaterMapping> getWaterdata(String tankid){
         return waterdataRepository.findWaterdatasByTankidOrderByTimeDesc(tankid);
-    }
+    }*/
 
-    public List<WaterMapping> getWaterdataTest(String tankid){
+    public List<WaterMapping> getWaterdata(String tankid){
         return waterdataRepository.findWaterdataByTankid(tankid);
     }
 
