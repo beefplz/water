@@ -8,15 +8,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface WaterdataRepository extends JpaRepository<Waterdata, Long> {
-    List<WaterMapping> findWaterdatasByTankidOrderByTimeDesc(String tankid);
+    //List<WaterMapping> findWaterdatasByTankidOrderByTimeDesc(String tankid);
 
     boolean existsByTime(LocalDateTime Time);
 
-    @Query(value = "SELECT * FROM waterdata WHERE MOD(DATE_FORMAT(time,'%i'),5)=0 AND tankid = :id ORDER BY time desc", nativeQuery =true )
+    @Query(value = "SELECT * FROM waterdata WHERE MOD(DATE_FORMAT(time,'%i'),30)=0 AND tankid = :id ORDER BY time desc limit 24", nativeQuery =true )
     List<WaterMapping> findWaterdataByTankid(@Param("id") String tankid);
 
     Waterdata findFirstByTankidOrderByTimeDesc(String tankid);
-
-    //SELECT * FROM waterdata WHERE MOD(DATE_FORMAT(dtime,'%i'),5)=0 AND fcid = 'IW1' ORDER BY dtime desc
 
 }

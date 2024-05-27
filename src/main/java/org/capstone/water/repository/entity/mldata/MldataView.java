@@ -14,21 +14,15 @@ import java.time.LocalDateTime;
 @Immutable
 @Table(name ="mldata")
 @Getter
-//@IdClass(WaterId.class)
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
 public class MldataView {
-    //@Id
     @Column(name="time")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyyMMddHHmm", timezone = "Asia/Seoul")
     private LocalDateTime time;
 
     @Id
-    //@ManyToOne
-    //@JoinColumn(name = "fcid")
-    private String tankid;
+    private Long num;
 
+    private String tankid;
     private Float wdo;
     private Float wt;
     private Float ph;
@@ -39,5 +33,7 @@ public class MldataView {
     private Float ssa;
     private Float sat;
     private Float sap;
-    private Float stl;
+    private Float swh;
+    private Float scd;
+    private Float scs;
 }

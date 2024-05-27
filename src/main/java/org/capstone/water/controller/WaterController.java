@@ -1,6 +1,7 @@
 package org.capstone.water.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.capstone.water.repository.entity.mldata.MldataMapping;
 import org.capstone.water.repository.entity.mldata.MldataView;
 import org.capstone.water.repository.entity.pdo.PdoMapping;
 import org.capstone.water.repository.entity.pdo.PredictDo;
@@ -25,11 +26,11 @@ public class WaterController {
         return new ResponseEntity<>(mldataViewList, HttpStatus.OK);
     }
 
-    /*@GetMapping("/test")
-    public ResponseEntity<List<WaterMapping>> getWaterdata(@RequestParam String tankid){
-        List<WaterMapping> waterdataList = service.getWaterdata(tankid);
-        return new ResponseEntity<>(waterdataList, HttpStatus.OK);
-    }*/
+    @GetMapping("/test")
+    public ResponseEntity<List<MldataMapping>> getTest(@RequestParam String tankid){
+        List<MldataMapping> mldataViewList = service.getTest(tankid);
+        return new ResponseEntity<>(mldataViewList, HttpStatus.OK);
+    }
 
     @GetMapping("/pdo")
     public ResponseEntity<List<PdoMapping>> getPdo(@RequestParam String tankid){
@@ -38,7 +39,7 @@ public class WaterController {
     }
 
     @GetMapping("/water")
-    public ResponseEntity<List<WaterMapping>> getTest(@RequestParam String tankid){
+    public ResponseEntity<List<WaterMapping>> getWater(@RequestParam String tankid){
         List<WaterMapping> waterdataList = service.getWaterdata(tankid);
         return new ResponseEntity<>(waterdataList, HttpStatus.OK);
     }

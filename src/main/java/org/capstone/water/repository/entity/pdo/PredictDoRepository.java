@@ -14,6 +14,6 @@ public interface PredictDoRepository extends JpaRepository<PredictDo, String> {
     //List<PdoMapping> findPredictDosByTankid(String tankid);
     boolean existsByTime(LocalDateTime time);
 
-    @Query(value = "SELECT * FROM nursery.predictdo WHERE MOD(DATE_FORMAT(time,'%i'),5)=0 AND tankid = :id ORDER BY time desc", nativeQuery =true )
+    @Query(value = "SELECT * FROM nursery.predictdo WHERE MOD(DATE_FORMAT(time,'%i'),30)=0 AND tankid = :id ORDER BY time desc limit 24", nativeQuery =true )
     List<PdoMapping> findPredictDosByTankid(@Param("id") String tankid);
 }

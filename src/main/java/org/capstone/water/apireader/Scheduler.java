@@ -1,6 +1,7 @@
 package org.capstone.water.apireader;
 
 import lombok.RequiredArgsConstructor;
+import org.capstone.water.repository.entity.mldata.MldataViewRepository;
 import org.capstone.water.repository.entity.pdo.PredictDo;
 import org.capstone.water.repository.entity.pdo.PredictDoRepository;
 import org.capstone.water.repository.entity.waterdata.Waterdata;
@@ -24,6 +25,7 @@ public class Scheduler {
     private final WaterdataRepository waterdataRepository;
     private final WeatherRepository weatherRepository;
     private final PredictDoRepository predictDoRepository;
+    private final MldataViewRepository mldataViewRepository;
     final Logger log = LoggerFactory.getLogger(getClass());
     @Scheduled(fixedRate = 60000)
     public void run() {
@@ -53,7 +55,7 @@ public class Scheduler {
         }
 
         PdoReader pdoReader = new PdoReader();
-        List<PredictDo> predictDoList = pdoReader.pdoRead(localDateTimeString);
+        List<PredictDo> predictDoList = pdoReader.pdoRead(localDateTimeString, mldataViewRepository);
         if(predictDoRepository.existsByTime(predictDoList.get(0).getTime())){
             log.info("predict do already exist");
         }

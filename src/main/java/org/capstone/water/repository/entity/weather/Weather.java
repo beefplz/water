@@ -34,5 +34,9 @@ public class Weather {
 
     private Float sap;
 
-    private Short stl;
+    private Float swh;
+
+    private Float scd;
+
+    private Float scs;
 }

@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-//@IdClass(WaterId.class)
 public class PredictDo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

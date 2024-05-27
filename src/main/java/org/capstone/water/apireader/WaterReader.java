@@ -50,14 +50,12 @@ public class WaterReader {
             hashMap.put("pageNumber", 1);
             hashMap.put("fcltyIds", jsonarr);
 
-            //LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(1);
-            //String localDateTimeString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-            //log.info(localDateTimeString);
-
             hashMap.put("startDate", timeString);
             hashMap.put("endDate", timeString);
 
             JSONObject jsonob = new JSONObject(hashMap);
+
+            log.info(jsonob.toJSONString());
 
             String surl = "http://aqua.kware.co.kr:/openapi/v1/fac/sensorstatus?acessToken=";
             surl += accessToken;
@@ -81,14 +79,14 @@ public class WaterReader {
             log.info(jsonIw1.toString());
             Float ph, sa;
             if (jsonIw1.get("ph")==null){
-                log.info("nulllllllllllllll");
+                log.info("ph is null");
                 Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
                 ph= waterdataIw1.getPh();
             }else {
                 ph = Float.parseFloat((String) jsonIw1.get("ph"));
             }
             if (jsonIw1.get("sa")==null){
-                log.info("nulllllllllllllll");
+                log.info("sa is null");
                 Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
                 sa= waterdataIw1.getSa();
             }else {

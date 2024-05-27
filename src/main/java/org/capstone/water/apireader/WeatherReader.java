@@ -22,7 +22,9 @@ public class WeatherReader {
         String result ="";
         log.info("weather");
         try{
-            URL url = new URL("https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=DT_0027&ResultType=json");
+            //생일도 유향 유속 풍향 TW_0081
+            //URL url = new URL("https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=DT_0027&ResultType=json");
+            URL url = new URL("https://www.khoa.go.kr/api/oceangrid/buObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=TW_0081&ResultType=json");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
 
@@ -41,18 +43,15 @@ public class WeatherReader {
             Float jws = Float.parseFloat((String) jdata.get("wind_speed"));
             Float jsa = Float.parseFloat((String) jdata.get("Salinity"));
             Float jat =  Float.parseFloat((String) jdata.get("air_temp"));
-            Float jap =  Float.parseFloat((String) jdata.get("air_press"));
-            Short jtl = Short.parseShort((String) jdata.get("tide_level"));
-
-
+            Float jap =  Float.parseFloat((String) jdata.get("air_pres"));
+            Float jcd =  Float.parseFloat((String) jdata.get("current_dir"));
+            Float jwh =  Float.parseFloat((String) jdata.get("wave_height"));
+            Float jcs =  Float.parseFloat((String) jdata.get("current_speed"));
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             LocalDateTime dateTime = LocalDateTime.parse(timeString, formatter);
 
-            return Weather.builder().time(dateTime).stl(jtl).swt(jwt).ssa(jsa).sat(jat).sap(jap).wdir(jwd).ws(jws).build();
-
-
-
+            return Weather.builder().time(dateTime).swh(jwh).swt(jwt).ssa(jsa).sat(jat).sap(jap).wdir(jwd).ws(jws).scd(jcd).scs(jcs).build();
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
