@@ -35,7 +35,7 @@ public class PdoReader {
 
         List<PredictDo> pdoList = new ArrayList<>();
 
-        /*String result1;
+        String result1;
         String result2;
         String result3;
 
@@ -67,7 +67,7 @@ public class PdoReader {
                 + "}";
 
         log.info(jsonInputString);
-        String url = "http://localhost:8000/v2/models/predictdo/infer";
+        String url = "http://220.66.149.122:16010/v2/models/predictdo/infer";
         result1 = getStringMLPost(log, jsonInputString, url);
         JSONParser jsonParser = new JSONParser();
         output1 = (double) Math.round(getOutputData(log, result1, jsonParser) * 100) /100;
@@ -133,11 +133,12 @@ public class PdoReader {
         result3 = getStringMLPost(log, jsonInputString, url);
         output3 = (double) Math.round(getOutputData(log, result3, jsonParser) * 100) /100;
         PredictDo pdo3 = PredictDo.builder().num(null).time(dateTime).pdo((float) output3).tankid("RT2").build();
-*/
+
+        /*
         PredictDo pdo1 = PredictDo.builder().num(null).time(dateTime).pdo(8.3F).tankid("IW1").build();
         PredictDo pdo2 = PredictDo.builder().num(null).time(dateTime).pdo(9.4F).tankid("RT1").build();
         PredictDo pdo3 = PredictDo.builder().num(null).time(dateTime).pdo(8.8F).tankid("RT2").build();
-
+        */
 
         pdoList.add(pdo1);
         pdoList.add(pdo2);
@@ -194,8 +195,8 @@ public class PdoReader {
         MldataMapping mldataView = mldataViewList.get(i);
         float time = 0F;
         Float scs =  mldataView.getScs();
-        Float swd = mldataView.getWdir();
-        Float cd = mldataView.getScd();
+        Float swd = mldataView.getScd();
+        Float cd = mldataView.getWdir();
         float scd = 0F;
         if (350 <= cd || cd <= 11)
             scd = 8F;
@@ -236,6 +237,6 @@ public class PdoReader {
         Float wt = mldataView.getWt();
         Float ph = mldataView.getPh();
         Float sa = mldataView.getSa();
-        return new float[]{time, scs, swd, scd, swt, fc, wdo, wt, ph, sa};
+        return new float[]{time, scs, scd, swd, swt, fc, wdo, wt, ph, sa};
     }
 }

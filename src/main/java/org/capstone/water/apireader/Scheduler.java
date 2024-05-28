@@ -35,7 +35,7 @@ public class Scheduler {
         log.info(localDateTimeString);
 
         WeatherReader weatherReader = new WeatherReader();
-        Weather weather = weatherReader.weatherRead(localDateTimeString);
+        Weather weather = weatherReader.weatherRead(localDateTimeString, weatherRepository);
         if (weatherRepository.existsByTime(weather.getTime())){
             log.info("weather already exist");
         }

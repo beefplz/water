@@ -10,6 +10,7 @@ import java.util.List;
 @Repository
 public interface MldataViewRepository extends JpaRepository<MldataView, String> {
     List<MldataView> findMldataViewsByTankid(String tankid);
+    List<MldataView> findTop10ByOrderByTimeDesc();
 
 
     @Query(value = "SELECT * FROM nursery.mldata WHERE tankid = :id ORDER BY time desc limit 30", nativeQuery =true )

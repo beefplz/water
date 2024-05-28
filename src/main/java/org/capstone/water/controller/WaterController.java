@@ -6,6 +6,7 @@ import org.capstone.water.repository.entity.mldata.MldataView;
 import org.capstone.water.repository.entity.pdo.PdoMapping;
 import org.capstone.water.repository.entity.pdo.PredictDo;
 import org.capstone.water.repository.entity.waterdata.WaterMapping;
+import org.capstone.water.repository.entity.weather.Weather;
 import org.capstone.water.service.WaterServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +28,9 @@ public class WaterController {
     }
 
     @GetMapping("/test")
-    public ResponseEntity<List<MldataMapping>> getTest(@RequestParam String tankid){
-        List<MldataMapping> mldataViewList = service.getTest(tankid);
-        return new ResponseEntity<>(mldataViewList, HttpStatus.OK);
+    public ResponseEntity<Weather> getTest(){
+        Weather weather = service.getTest();
+        return new ResponseEntity<>(weather, HttpStatus.OK);
     }
 
     @GetMapping("/pdo")

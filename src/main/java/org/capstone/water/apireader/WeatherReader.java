@@ -1,6 +1,7 @@
 package org.capstone.water.apireader;
 
 import org.capstone.water.repository.entity.weather.Weather;
+import org.capstone.water.repository.entity.weather.WeatherRepository;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -17,14 +18,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class WeatherReader {
-    public Weather weatherRead(String timeString) {
+    public Weather weatherRead(String timeString, WeatherRepository weatherRepository) {
         final Logger log = LoggerFactory.getLogger(getClass());
         String result ="";
         log.info("weather");
         try{
             //생일도 유향 유속 풍향 TW_0081
-            //URL url = new URL("https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=DT_0027&ResultType=json");
-            URL url = new URL("https://www.khoa.go.kr/api/oceangrid/buObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=TW_0081&ResultType=json");
+            URL url = new URL("https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=DT_0027&ResultType=json");
+            //URL url = new URL("https://www.khoa.go.kr/api/oceangrid/buObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=TW_0081&ResultType=json");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
 
@@ -38,15 +39,58 @@ public class WeatherReader {
             log.info(jdata.toJSONString());
 
             //String jtime = (String) jdata.get("record_time");
-            Float jwt = Float.parseFloat((String) jdata.get("water_temp"));
-            Short jwd = Short.parseShort((String) jdata.get("wind_dir"));
-            Float jws = Float.parseFloat((String) jdata.get("wind_speed"));
-            Float jsa = Float.parseFloat((String) jdata.get("Salinity"));
-            Float jat =  Float.parseFloat((String) jdata.get("air_temp"));
-            Float jap =  Float.parseFloat((String) jdata.get("air_pres"));
-            Float jcd =  Float.parseFloat((String) jdata.get("current_dir"));
-            Float jwh =  Float.parseFloat((String) jdata.get("wave_height"));
-            Float jcs =  Float.parseFloat((String) jdata.get("current_speed"));
+                   
+            Float jwt, jws, jsa, jat, jap, jwh;
+            Short jwd;
+
+            //Float jcd =  Float.parseFloat((String) jdata.get("current_dir"));
+            //Float jcs =  Float.parseFloat((String) jdata.get("current_speed"));
+
+            Float jcd =  0F;
+            Float jcs =  0F;
+
+            if (jdata.get("water_temp")==null){
+                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
+                jwt = weather.getSwt();
+            }else{
+                jwt = Float.parseFloat((String) jdata.get("water_temp"));
+            }
+            if (jdata.get("wind_dir")==null){
+                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
+                jwd = weather.getWdir();
+            }else{
+                jwd = Short.parseShort((String) jdata.get("wind_dir"));
+            }
+            if (jdata.get("wind_speed")==null){
+                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
+                jws = weather.getWs();
+            }else {
+                jws = Float.parseFloat((String) jdata.get("wind_speed"));
+            }
+            if (jdata.get("Salinity")==null){
+                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
+                jsa = weather.getSsa();
+            }else {
+                jsa = Float.parseFloat((String) jdata.get("Salinity"));
+            }
+            if (jdata.get("air_temp")==null){
+                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
+                jat = weather.getSat();
+            }else {
+                jat =  Float.parseFloat((String) jdata.get("air_temp"));
+            }
+            if (jdata.get("air_press")==null){
+                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
+                jap = weather.getSap();
+            }else {
+                jap =  Float.parseFloat((String) jdata.get("air_press"));
+            }
+            if (jdata.get("tide_level")==null){
+                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
+                jwh = weather.getSwh();
+            }else {
+                jwh =  Float.parseFloat((String) jdata.get("tide_level"));
+            }
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             LocalDateTime dateTime = LocalDateTime.parse(timeString, formatter);
