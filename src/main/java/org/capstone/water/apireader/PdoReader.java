@@ -237,6 +237,6 @@ public class PdoReader {
         Float wt = mldataView.getWt();
         Float ph = mldataView.getPh();
         Float sa = mldataView.getSa();
-        return new float[]{time, scs, scd, swd, swt, fc, wdo, wt, ph, sa};
+        return new float[]{scs, scd, swd, swt, fc, wdo, wt, ph, sa, time};
     }
 }

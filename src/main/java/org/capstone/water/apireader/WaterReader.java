@@ -1,6 +1,7 @@
 package org.capstone.water.apireader;
 
 import lombok.RequiredArgsConstructor;
+import org.capstone.water.repository.entity.waterdata.WaterMapping;
 import org.capstone.water.repository.entity.waterdata.Waterdata;
 import org.capstone.water.repository.entity.waterdata.WaterdataRepository;
 import org.json.simple.JSONArray;
@@ -80,14 +81,14 @@ public class WaterReader {
             Float ph, sa;
             if (jsonIw1.get("ph")==null){
                 log.info("ph is null");
-                Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
+                WaterMapping waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
                 ph= waterdataIw1.getPh();
             }else {
                 ph = Float.parseFloat((String) jsonIw1.get("ph"));
             }
             if (jsonIw1.get("sa")==null){
                 log.info("sa is null");
-                Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
+                WaterMapping waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
                 sa= waterdataIw1.getSa();
             }else {
                 sa = Float.parseFloat((String) jsonIw1.get("sa"));
@@ -118,13 +119,13 @@ public class WaterReader {
         String tankid = json.get("tankId").toString().substring(6);
         Float wt, wdo;
         if (json.get("wt")==null){
-            Waterdata waterdata =  waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid);
+            WaterMapping waterdata =  waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid);
             wt= waterdata.getWt();
         }else {
             wt = Float.parseFloat((String) json.get("wt"));
         }
         if (json.get("do1")==null){
-            Waterdata waterdata =  waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid);
+            WaterMapping waterdata =  waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid);
             wdo= waterdata.getWdo();
         }else {
             wdo = Float.parseFloat((String) json.get("do1"));

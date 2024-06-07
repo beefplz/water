@@ -15,6 +15,5 @@ public interface WaterdataRepository extends JpaRepository<Waterdata, Long> {
     @Query(value = "SELECT * FROM waterdata WHERE MOD(DATE_FORMAT(time,'%i'),30)=0 AND tankid = :id ORDER BY time desc limit 24", nativeQuery =true )
     List<WaterMapping> findWaterdataByTankid(@Param("id") String tankid);
 
-    Waterdata findFirstByTankidOrderByTimeDesc(String tankid);
-
+    WaterMapping findFirstByTankidOrderByTimeDesc(String tankid);
 }

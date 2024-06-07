@@ -44,4 +44,10 @@ public class WaterController {
         List<WaterMapping> waterdataList = service.getWaterdata(tankid);
         return new ResponseEntity<>(waterdataList, HttpStatus.OK);
     }
+
+    @GetMapping("/waterone")
+    public ResponseEntity<WaterMapping> getWaterOne(@RequestParam String tankid){
+        WaterMapping waterdata = service.getWaterdataOne(tankid);
+        return new ResponseEntity<>(waterdata, HttpStatus.OK);
+    }
 }

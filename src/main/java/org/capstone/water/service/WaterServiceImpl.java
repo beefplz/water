@@ -31,9 +31,9 @@ public class WaterServiceImpl {
     public List<MldataView> getMldata(String tankid){
         return mldataViewRepository.findMldataViewsByTankid(tankid);
     }
-    public List<MldataView> getMldata30(){
+    /*public List<MldataView> getMldata30(){
         return mldataViewRepository.findTop10ByOrderByTimeDesc();
-    }
+    }*/
     public Weather getTest(){
         return weatherRepository.findFirstByOrderByTimeDesc();
     }
@@ -42,5 +42,6 @@ public class WaterServiceImpl {
         return waterdataRepository.findWaterdataByTankid(tankid);
     }
 
+    public WaterMapping getWaterdataOne(String tankid){ return waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid); }
 
 }
