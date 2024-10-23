@@ -22,4 +22,5 @@ public interface MldataMapping {
     Float getSwh();
     Float getScd();
     Float getScs();
+    Float getOs();
 }

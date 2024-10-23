@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.capstone.water.repository.entity.mldata.MldataViewRepository;
 import org.capstone.water.repository.entity.pdo.PredictDo;
 import org.capstone.water.repository.entity.pdo.PredictDoRepository;
+import org.capstone.water.repository.entity.pdoweek.PredictDoWeek;
+import org.capstone.water.repository.entity.pdoweek.PredictDoWeekRepository;
 import org.capstone.water.repository.entity.waterdata.Waterdata;
 import org.capstone.water.repository.entity.waterdata.WaterdataRepository;
 import org.capstone.water.repository.entity.weather.Weather;
@@ -26,6 +28,7 @@ public class Scheduler {
     private final WeatherRepository weatherRepository;
     private final PredictDoRepository predictDoRepository;
     private final MldataViewRepository mldataViewRepository;
+    private final PredictDoWeekRepository predictDoWeekRepository;;
     final Logger log = LoggerFactory.getLogger(getClass());
     @Scheduled(fixedRate = 60000)
     public void run() {
@@ -64,5 +67,17 @@ public class Scheduler {
             predictDoRepository.save(predictDoList.get(1));
             predictDoRepository.save(predictDoList.get(2));
         }
+
+        PdoWeekReader pdoWeekReader = new PdoWeekReader();
+        List<PredictDoWeek> predictDoWeekList = pdoWeekReader.pdoweekRead(localDateTimeString, mldataViewRepository);
+        if(predictDoWeekRepository.existsByTime(predictDoList.get(0).getTime())){
+            log.info("predict do already exist");
+        }
+        else {
+            predictDoWeekRepository.save(predictDoWeekList.get(0));
+            predictDoWeekRepository.save(predictDoWeekList.get(1));
+            predictDoWeekRepository.save(predictDoWeekList.get(2));
+        }
+
     }
 }

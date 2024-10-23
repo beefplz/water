@@ -13,7 +13,12 @@ public interface WaterdataRepository extends JpaRepository<Waterdata, Long> {
     boolean existsByTime(LocalDateTime Time);
 
     @Query(value = "SELECT * FROM waterdata WHERE MOD(DATE_FORMAT(time,'%i'),30)=0 AND tankid = :id ORDER BY time desc limit 24", nativeQuery =true )
-    List<WaterMapping> findWaterdataByTankid(@Param("id") String tankid);
+    List<Waterdata> findWaterdataByTankid(@Param("id") String tankid);
 
-    WaterMapping findFirstByTankidOrderByTimeDesc(String tankid);
+    Waterdata findFirstByTankidOrderByTimeDesc(String tankid);
+
+    @Query(value = "SELECT * FROM waterdata WHERE MOD(DATE_FORMAT(time,'%i'),30)=0 AND tankid = :id ORDER BY time desc limit 336", nativeQuery =true )
+    List<Waterdata> findWaterdataByTankidWeek(@Param("id") String tankid);
+
+    Waterdata findFistByTankidAndTime(String tankid, LocalDateTime time);
 }

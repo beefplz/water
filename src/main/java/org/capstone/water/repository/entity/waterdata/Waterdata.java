@@ -38,6 +38,10 @@ public class Waterdata {
     @Column(name = "sa")
     private Float sa;
 
+    @Transient
+    @Setter
+    private Float Os;
+
     @Builder
     public Waterdata(Long num, LocalDateTime time,String tankid, Float wdo, Float wt, Float ph, Float sa){
         this.num = num;

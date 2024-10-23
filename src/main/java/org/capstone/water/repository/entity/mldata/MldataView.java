@@ -2,10 +2,7 @@ package org.capstone.water.repository.entity.mldata;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import java.time.LocalDateTime;
@@ -36,4 +33,12 @@ public class MldataView {
     private Float swh;
     private Float scd;
     private Float scs;
+
+    @Transient
+    @Setter
+    private Float Os;
+
+    /*public void setOs(Float Os) {
+        this.Os = Os;
+    }*/
 }
