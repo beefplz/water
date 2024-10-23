@@ -1,6 +1,7 @@
 package org.capstone.water.repository.entity.waterdata;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDateTime;
 
 public interface WaterMapping {
