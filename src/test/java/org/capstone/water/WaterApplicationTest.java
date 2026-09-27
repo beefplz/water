@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -12,17 +13,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // 인메모리 DB(H2)로 애플리케이션 전체를 띄워 설정과 Bean 구성이 올바른지 확인
-@SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:water;MODE=MariaDB;DB_CLOSE_DELAY=-1",
-        "spring.datasource.driverClassName=org.h2.Driver",
-        "spring.datasource.username=sa",
-        "spring.datasource.password=",
-        "spring.jpa.hibernate.ddl-auto=create-drop",
-        "api.khoa-key=test",
-        "api.kware-key=test",
-        "api.triton-url=http://localhost:1",
-        "app.scheduling.enabled=false"
-})
+@SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 class WaterApplicationTest {
 
