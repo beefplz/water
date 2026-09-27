@@ -1,0 +1,42 @@
+# 로컬 실행용: MariaDB와 애플리케이션을 함께 띄운다.
+#   docker compose up -d --build
+# 값은 .env 파일(git 제외)에서 읽고, 없으면 아래 기본값을 사용한다. 견본은 .env.example 참고.
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_DATABASE: nursery
+      MARIADB_USER: ${DB_USERNAME:-water}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-water}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      TZ: Asia/Seoul
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mariadb://db:3306/nursery
+      DB_USERNAME: ${DB_USERNAME:-water}
+      DB_PASSWORD: ${DB_PASSWORD:-water}
+      KHOA_KEY: ${KHOA_KEY:-none}
+      KWARE_KEY: ${KWARE_KEY:-none}
+      TRITON_URL: ${TRITON_URL:-http://localhost:16010}
+      # 실제 API 키와 Triton 서버가 있을 때만 true로 켠다 (기본은 수집하지 않음)
+      APP_SCHEDULING_ENABLED: ${APP_SCHEDULING_ENABLED:-false}
+    ports:
+      - "7355:7355"
+
+volumes:
+  db-data:
