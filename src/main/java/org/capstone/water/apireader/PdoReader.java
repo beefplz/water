@@ -5,6 +5,7 @@ import org.capstone.water.config.ApiProperties;
 import org.springframework.stereotype.Component;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -37,11 +39,10 @@ public class PdoReader {
 
     public List<PredictDo> pdoRead(String timeString){
         final Logger log = LoggerFactory.getLogger(getClass());
-        log.info("pdo");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime dateTime = LocalDateTime.parse(timeString, formatter).plusMinutes(30);
-        log.info(dateTime.toString());
+        log.debug("예측 목표 시각: {}", dateTime);
 
         List<PredictDo> pdoList = new ArrayList<>();
 
@@ -76,7 +77,7 @@ public class PdoReader {
                 + "]"
                 + "}";
 
-        log.info(jsonInputString);
+        log.debug("Triton 요청: {}", jsonInputString);
         String url = api.tritonUrl() + "/v2/models/predictdo/infer";
         result1 = getStringMLPost(log, jsonInputString, url);
         JSONParser jsonParser = new JSONParser();
@@ -107,7 +108,7 @@ public class PdoReader {
                 + "]"
                 + "}";
 
-        log.info(jsonInputString);
+        log.debug("Triton 요청: {}", jsonInputString);
 
         result2 = getStringMLPost(log, jsonInputString, url);
         output2 = (double) Math.round(getOutputData(log, result2, jsonParser) * 100) /100;
@@ -138,7 +139,7 @@ public class PdoReader {
                 + "]"
                 + "}";
 
-        log.info(jsonInputString);
+        log.debug("Triton 요청: {}", jsonInputString);
 
         result3 = getStringMLPost(log, jsonInputString, url);
         output3 = (double) Math.round(getOutputData(log, result3, jsonParser) * 100) /100;
@@ -169,36 +170,32 @@ public class PdoReader {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        log.info(Double.toString(output));
+        log.debug("Triton 출력값: {}", output);
         return output;
     }
 
     private String getStringMLPost(Logger log, String jsonInputString, String url) {
-        HttpResponse response;
-        String result;
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(HttpTimeouts.CONNECT)
+                .setSocketTimeout(HttpTimeouts.INFERENCE_READ)
+                .build();
+        try (CloseableHttpClient client = HttpClients.custom().setDefaultRequestConfig(config).build()) {
             HttpPost post = new HttpPost(url);
-
             post.setHeader("Content-Type", "application/json");
+            post.setEntity(new StringEntity(jsonInputString));
 
-            StringEntity entity = new StringEntity(jsonInputString);
-            post.setEntity(entity);
-
-            response = client.execute(post);
+            // 응답 본문은 client가 닫히기 전에 읽어야 함
+            HttpResponse response = client.execute(post);
+            int status = response.getStatusLine().getStatusCode();
+            String result = EntityUtils.toString(response.getEntity());
+            if (status != 200) {
+                throw new IllegalStateException("Triton 응답 오류 " + status + ": " + result);
+            }
+            log.debug("Triton 응답: {}", result);
+            return result;
         } catch (IOException e) {
-            log.info("closeablehttpclient runtime");
-            throw new RuntimeException(e);
+            throw new UncheckedIOException("Triton 호출 실패: " + url, e);
         }
-
-        System.out.println("Response Code : " + response.getStatusLine().getStatusCode());
-        try {
-            result = EntityUtils.toString(response.getEntity());
-        } catch (IOException e) {
-            log.info("result runtime");
-            throw new RuntimeException(e);
-        }
-        log.info(result);
-        return result;
     }
 
     private static float[] getFloats(List<MldataMapping> mldataViewList, int i) {

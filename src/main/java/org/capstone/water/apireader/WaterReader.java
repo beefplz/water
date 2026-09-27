@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
@@ -40,19 +41,19 @@ public class WaterReader {
     public List<Waterdata> waterRead(String timeString) {
         final Logger log = LoggerFactory.getLogger(getClass());
         String result ="";
-        log.info("water");
         try {
             URL urlf = new URL("http://aqua.kware.co.kr:/openapi/v1/acesstoken?key=" + api.kwareKey());
             HttpURLConnection urlConnectionf = (HttpURLConnection) urlf.openConnection();
-            urlConnectionf.setRequestMethod("POST");
+            // 기존 urlf.openStream()과 같은 GET 요청 (setRequestMethod("POST")는 실제로 적용되지 않았음)
+            urlConnectionf.setConnectTimeout(HttpTimeouts.CONNECT);
+            urlConnectionf.setReadTimeout(HttpTimeouts.READ);
 
-            BufferedReader bf = new BufferedReader(new InputStreamReader(urlf.openStream(), StandardCharsets.UTF_8));
+            BufferedReader bf = new BufferedReader(new InputStreamReader(urlConnectionf.getInputStream(), StandardCharsets.UTF_8));
             result = bf.readLine();
 
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
             String accessToken = (String) jsonObject.get("acessToken");
-            log.info(accessToken);
 
             JSONArray jsonarr = new JSONArray();
 
@@ -67,18 +68,21 @@ public class WaterReader {
 
             JSONObject jsonob = new JSONObject(hashMap);
 
-            log.info(jsonob.toJSONString());
+            log.debug("kware 요청: {}", jsonob.toJSONString());
 
             String surl = "http://aqua.kware.co.kr:/openapi/v1/fac/sensorstatus?acessToken=";
             surl += accessToken;
 
-            RestTemplate restTemplate = new RestTemplate();
+            SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+            requestFactory.setConnectTimeout(HttpTimeouts.CONNECT);
+            requestFactory.setReadTimeout(HttpTimeouts.READ);
+            RestTemplate restTemplate = new RestTemplate(requestFactory);
             HttpHeaders headers = new HttpHeaders();
             MediaType mediaType = new MediaType("application", "json", StandardCharsets.UTF_8);
             headers.setContentType(mediaType);
             HttpEntity<String> httpEntity = new HttpEntity<>(jsonob.toJSONString(), headers);
             String res = restTemplate.postForObject(surl, httpEntity, String.class);
-            log.info(res);
+            log.debug("kware 응답: {}", res);
             result = res;
 
             jsonParser = new JSONParser();
@@ -96,17 +100,17 @@ public class WaterReader {
                 jsonIw1 = (JSONObject) jsonList.get(0);
                 jsonRt1 = (JSONObject) jsonList.get(1);
                 jsonRt2 = (JSONObject) jsonList.get(2);
-                log.info(jsonIw1.toString());
+                log.debug("iw1: {}", jsonIw1);
 
                 if (jsonIw1.get("ph")==null){
-                    log.info("ph is null");
+                    log.warn("iw1 ph 없음, 직전 값으로 대체");
                     Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
                     ph= waterdataIw1.getPh();
                 }else {
                     ph = Float.parseFloat((String) jsonIw1.get("ph"));
                 }
                 if (jsonIw1.get("sa")==null){
-                    log.info("sa is null");
+                    log.warn("iw1 염도 없음, 직전 값으로 대체");
                     Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
                     sa= waterdataIw1.getSa();
                 }else {
@@ -118,7 +122,7 @@ public class WaterReader {
 
                 waterdata3 = getJsonToWaterdata(jsonRt2, ph, sa, waterdataRepository);
             }else{
-                log.info("error no water data");
+                log.warn("수조 데이터 없음, 1개월 전 데이터로 대체");
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                 LocalDateTime dateTime = LocalDateTime.parse(timeString, formatter);
                 LocalDateTime dateTimeMonthago = LocalDateTime.parse(timeString, formatter).minusMonths(1);
@@ -128,7 +132,7 @@ public class WaterReader {
                 waterdata3 = waterdataRepository.findFistByTankidAndTime("rt2" , dateTimeMonthago);
 
                 if(waterdata1==null){
-                    log.info("2 month ago");
+                    log.warn("1개월 전 데이터도 없음, 3개월 전 데이터로 대체");
                     dateTimeMonthago = dateTimeMonthago.minusMonths(2);
                     waterdata1 = waterdataRepository.findFistByTankidAndTime("iw1" , dateTimeMonthago);
                     waterdata2 = waterdataRepository.findFistByTankidAndTime("rt1" , dateTimeMonthago);
