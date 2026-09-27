@@ -1,5 +1,9 @@
 package org.capstone.water.apireader;
 
+import lombok.RequiredArgsConstructor;
+import org.capstone.water.config.ApiProperties;
+import org.springframework.stereotype.Component;
+
 import org.capstone.water.repository.entity.weather.Weather;
 import org.capstone.water.repository.entity.weather.WeatherRepository;
 import org.json.simple.JSONObject;
@@ -17,26 +21,32 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Component
+@RequiredArgsConstructor
 public class WeatherReader {
-    public Weather weatherRead(String timeString, WeatherRepository weatherRepository) {
+    private final WeatherRepository weatherRepository;
+    private final ApiProperties api;
+
+
+    public Weather weatherRead(String timeString) {
         final Logger log = LoggerFactory.getLogger(getClass());
         String result ="";
-        log.info("weather");
         try{
             //생일도 유향 유속 풍향 TW_0081
-            URL url = new URL("https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=DT_0027&ResultType=json");
-            //URL url = new URL("https://www.khoa.go.kr/api/oceangrid/buObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=TW_0081&ResultType=json");
+            URL url = new URL("https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do?ServiceKey=" + api.khoaKey() + "&ObsCode=DT_0027&ResultType=json");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
+            urlConnection.setConnectTimeout(HttpTimeouts.CONNECT);
+            urlConnection.setReadTimeout(HttpTimeouts.READ);
 
-            BufferedReader bf = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
+            BufferedReader bf = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
             result = bf.readLine();
 
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
             JSONObject jresult = (JSONObject) jsonObject.get("result");
             JSONObject jdata = (JSONObject) jresult.get("data");
-            log.info(jdata.toJSONString());
+            log.debug("khoa 응답: {}", jdata.toJSONString());
 
             //String jtime = (String) jdata.get("record_time");
                    
@@ -50,42 +60,49 @@ public class WeatherReader {
             Float jcs =  0F;
 
             if (jdata.get("water_temp")==null){
+                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "water_temp");
                 Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
                 jwt = weather.getSwt();
             }else{
                 jwt = Float.parseFloat((String) jdata.get("water_temp"));
             }
             if (jdata.get("wind_dir")==null){
+                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "wind_dir");
                 Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
                 jwd = weather.getWdir();
             }else{
                 jwd = Short.parseShort((String) jdata.get("wind_dir"));
             }
             if (jdata.get("wind_speed")==null){
+                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "wind_speed");
                 Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
                 jws = weather.getWs();
             }else {
                 jws = Float.parseFloat((String) jdata.get("wind_speed"));
             }
             if (jdata.get("Salinity")==null){
+                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "Salinity");
                 Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
                 jsa = weather.getSsa();
             }else {
                 jsa = Float.parseFloat((String) jdata.get("Salinity"));
             }
             if (jdata.get("air_temp")==null){
+                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "air_temp");
                 Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
                 jat = weather.getSat();
             }else {
                 jat =  Float.parseFloat((String) jdata.get("air_temp"));
             }
             if (jdata.get("air_press")==null){
+                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "air_press");
                 Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
                 jap = weather.getSap();
             }else {
                 jap =  Float.parseFloat((String) jdata.get("air_press"));
             }
             if (jdata.get("tide_level")==null){
+                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "tide_level");
                 Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
                 jwh = weather.getSwh();
             }else {
