@@ -33,4 +33,10 @@ class WaterApplicationTest {
                 .andExpect(status().isNotFound());
         mockMvc.perform(delete("/weathers/1")).andExpect(status().isNotFound());
     }
+
+    @Test
+    void 캐시_관리_엔드포인트는_공개되지_않는다() throws Exception {
+        mockMvc.perform(get("/actuator/caches")).andExpect(status().isNotFound());
+        mockMvc.perform(delete("/actuator/caches")).andExpect(status().isNotFound());
+    }
 }
