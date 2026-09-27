@@ -1,191 +1,135 @@
 package org.capstone.water.apireader;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.capstone.water.config.ApiProperties;
-import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
 import org.capstone.water.repository.entity.waterdata.Waterdata;
 import org.capstone.water.repository.entity.waterdata.WaterdataRepository;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.util.Lazy;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
+import static org.capstone.water.apireader.JsonFields.floatOr;
+
+// kware 양식장 센서 API에서 수조별 수온, DO, pH, 염도 수집
 @Component
-@RequiredArgsConstructor
 public class WaterReader {
+    private static final Logger log = LoggerFactory.getLogger(WaterReader.class);
+    private static final String KWARE_URL = "http://aqua.kware.co.kr/openapi/v1";
+    private static final String FACILITY_ID = "61AF1";
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter SENSOR_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private final RestClient restClient;
     private final WaterdataRepository waterdataRepository;
     private final ApiProperties api;
 
+    public WaterReader(@Qualifier("apiRestClient") RestClient restClient,
+                       WaterdataRepository waterdataRepository, ApiProperties api) {
+        this.restClient = restClient;
+        this.waterdataRepository = waterdataRepository;
+        this.api = api;
+    }
 
     public List<Waterdata> waterRead(String timeString) {
-        final Logger log = LoggerFactory.getLogger(getClass());
-        String result ="";
-        try {
-            URL urlf = new URL("http://aqua.kware.co.kr:/openapi/v1/acesstoken?key=" + api.kwareKey());
-            HttpURLConnection urlConnectionf = (HttpURLConnection) urlf.openConnection();
-            // 기존 urlf.openStream()과 같은 GET 요청 (setRequestMethod("POST")는 실제로 적용되지 않았음)
-            urlConnectionf.setConnectTimeout(HttpTimeouts.CONNECT);
-            urlConnectionf.setReadTimeout(HttpTimeouts.READ);
-
-            BufferedReader bf = new BufferedReader(new InputStreamReader(urlConnectionf.getInputStream(), StandardCharsets.UTF_8));
-            result = bf.readLine();
-
-            JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
-            String accessToken = (String) jsonObject.get("acessToken");
-
-            JSONArray jsonarr = new JSONArray();
-
-            jsonarr.add("61AF1");
-            HashMap<String, Object> hashMap = new HashMap<>();
-            hashMap.put("pageSize", 200);
-            hashMap.put("pageNumber", 1);
-            hashMap.put("fcltyIds", jsonarr);
-
-            hashMap.put("startDate", timeString);
-            hashMap.put("endDate", timeString);
-
-            JSONObject jsonob = new JSONObject(hashMap);
-
-            log.debug("kware 요청: {}", jsonob.toJSONString());
-
-            String surl = "http://aqua.kware.co.kr:/openapi/v1/fac/sensorstatus?acessToken=";
-            surl += accessToken;
-
-            SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-            requestFactory.setConnectTimeout(HttpTimeouts.CONNECT);
-            requestFactory.setReadTimeout(HttpTimeouts.READ);
-            RestTemplate restTemplate = new RestTemplate(requestFactory);
-            HttpHeaders headers = new HttpHeaders();
-            MediaType mediaType = new MediaType("application", "json", StandardCharsets.UTF_8);
-            headers.setContentType(mediaType);
-            HttpEntity<String> httpEntity = new HttpEntity<>(jsonob.toJSONString(), headers);
-            String res = restTemplate.postForObject(surl, httpEntity, String.class);
-            log.debug("kware 응답: {}", res);
-            result = res;
-
-            jsonParser = new JSONParser();
-            jsonObject = (JSONObject) jsonParser.parse(result);
-            JSONObject jsonContent = (JSONObject) jsonObject.get("content");
-            JSONArray jsonList = (JSONArray) jsonContent.get("list");
-            JSONObject jsonIw1 ;
-            JSONObject jsonRt1;
-            JSONObject jsonRt2;
-            Float ph, sa;
-            Waterdata waterdata1;
-            Waterdata waterdata2;
-            Waterdata waterdata3;
-            if(!jsonList.isEmpty()) {
-                jsonIw1 = (JSONObject) jsonList.get(0);
-                jsonRt1 = (JSONObject) jsonList.get(1);
-                jsonRt2 = (JSONObject) jsonList.get(2);
-                log.debug("iw1: {}", jsonIw1);
-
-                if (jsonIw1.get("ph")==null){
-                    log.warn("iw1 ph 없음, 직전 값으로 대체");
-                    Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
-                    ph= waterdataIw1.getPh();
-                }else {
-                    ph = Float.parseFloat((String) jsonIw1.get("ph"));
-                }
-                if (jsonIw1.get("sa")==null){
-                    log.warn("iw1 염도 없음, 직전 값으로 대체");
-                    Waterdata waterdataIw1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
-                    sa= waterdataIw1.getSa();
-                }else {
-                    sa = Float.parseFloat((String) jsonIw1.get("sa"));
-                }
-                waterdata1 = getJsonToWaterdata(jsonIw1, ph, sa, waterdataRepository);
-
-                waterdata2 = getJsonToWaterdata(jsonRt1, ph, sa, waterdataRepository);
-
-                waterdata3 = getJsonToWaterdata(jsonRt2, ph, sa, waterdataRepository);
-            }else{
-                log.warn("수조 데이터 없음, 1개월 전 데이터로 대체");
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                LocalDateTime dateTime = LocalDateTime.parse(timeString, formatter);
-                LocalDateTime dateTimeMonthago = LocalDateTime.parse(timeString, formatter).minusMonths(1);
-
-                waterdata1 = waterdataRepository.findFistByTankidAndTime("iw1" , dateTimeMonthago);
-                waterdata2 = waterdataRepository.findFistByTankidAndTime("rt1" , dateTimeMonthago);
-                waterdata3 = waterdataRepository.findFistByTankidAndTime("rt2" , dateTimeMonthago);
-
-                if(waterdata1==null){
-                    log.warn("1개월 전 데이터도 없음, 3개월 전 데이터로 대체");
-                    dateTimeMonthago = dateTimeMonthago.minusMonths(2);
-                    waterdata1 = waterdataRepository.findFistByTankidAndTime("iw1" , dateTimeMonthago);
-                    waterdata2 = waterdataRepository.findFistByTankidAndTime("rt1" , dateTimeMonthago);
-                    waterdata3 = waterdataRepository.findFistByTankidAndTime("rt2" , dateTimeMonthago);
-                }
-
-                /*waterdata1 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1");
-                waterdata2 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("rt1");
-                waterdata3 =  waterdataRepository.findFirstByTankidOrderByTimeDesc("rt2");*/
-
-                waterdata1.setTime(dateTime);
-                waterdata2.setTime(dateTime);
-                waterdata3.setTime(dateTime);
-                waterdata1.setNum(null);
-                waterdata2.setNum(null);
-                waterdata3.setNum(null);
-            }
-
-            List<Waterdata> waterdataList = new ArrayList<>();
-
-            waterdataList.add(waterdata1);
-            waterdataList.add(waterdata2);
-            waterdataList.add(waterdata3);
-
-
-            return waterdataList;
-
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
+        JsonNode list = requestSensorStatus(requestAccessToken(), timeString).path("content").path("list");
+        if (!list.isArray()) {
+            throw new IllegalStateException("kware 응답 형식 오류: content.list 없음");
         }
+        if (list.isEmpty()) {
+            return pastData(LocalDateTime.parse(timeString, FORMATTER));
+        }
+        if (list.size() < Tanks.IDS.size()) {
+            throw new IllegalStateException("kware 수조 데이터 부족: " + list.size() + "/" + Tanks.IDS.size());
+        }
+
+        // pH와 염도는 iw1 센서에만 있어 세 수조에 같은 값을 사용
+        JsonNode iw1 = list.get(0);
+        log.debug("iw1: {}", iw1);
+        Lazy<Waterdata> latestIw1 = Lazy.of(() -> waterdataRepository.findFirstByTankidOrderByTimeDesc("iw1"));
+        Float ph = floatOr(iw1, "ph", "iw1", () -> latestIw1.get().getPh());
+        Float sa = floatOr(iw1, "sa", "iw1", () -> latestIw1.get().getSa());
+
+        return List.of(toWaterdata(list.get(0), ph, sa), toWaterdata(list.get(1), ph, sa), toWaterdata(list.get(2), ph, sa));
     }
 
-    private Waterdata getJsonToWaterdata(JSONObject json, Float ph, Float sa, WaterdataRepository waterdataRepository) {
-        String date = (String) json.get("collectTime");
-        String time = (String) json.get("collectDe");
-        String tankid = json.get("tankId").toString().substring(6);
-        Float wt, wdo;
-        if (json.get("wt")==null){
-            Waterdata waterdata =  waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid);
-            wt= waterdata.getWt();
-        }else {
-            wt = Float.parseFloat((String) json.get("wt"));
+    private String requestAccessToken() {
+        URI uri = URI.create(KWARE_URL + "/acesstoken?key=" + api.kwareKey());
+        JsonNode response = restClient.get().uri(uri).retrieve().body(JsonNode.class);
+        // 응답 필드명 철자가 API 원본 그대로 'acessToken'
+        String token = response == null ? null : response.path("acessToken").asText(null);
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException("kware 액세스 토큰 발급 실패");
         }
-        if (json.get("do1")==null){
-            Waterdata waterdata =  waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid);
-            wdo= waterdata.getWdo();
-        }else {
-            wdo = Float.parseFloat((String) json.get("do1"));
-        }
-        String dtime = time + " " + date;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime dateTime = LocalDateTime.parse(dtime, formatter);
-
-        return Waterdata.builder().num(null).tankid(tankid).time(dateTime).wt(wt).wdo(wdo).ph(ph).sa(sa).build();
+        return token;
     }
+
+    private JsonNode requestSensorStatus(String token, String timeString) {
+        URI uri = UriComponentsBuilder.fromUriString(KWARE_URL + "/fac/sensorstatus")
+                .queryParam("acessToken", token)
+                .build()
+                .encode()
+                .toUri();
+        SensorStatusRequest request = new SensorStatusRequest(200, 1, List.of(FACILITY_ID), timeString, timeString);
+        log.debug("kware 요청: {}", request);
+
+        JsonNode response = restClient.post()
+                .uri(uri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body(JsonNode.class);
+        log.debug("kware 응답: {}", response);
+        if (response == null) {
+            throw new IllegalStateException("kware 응답 없음");
+        }
+        return response;
+    }
+
+    private Waterdata toWaterdata(JsonNode json, Float ph, Float sa) {
+        String tankid = json.path("tankId").asText().substring(6);
+        Lazy<Waterdata> latest = Lazy.of(() -> waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid));
+        Float wt = floatOr(json, "wt", tankid, () -> latest.get().getWt());
+        Float wdo = floatOr(json, "do1", tankid, () -> latest.get().getWdo());
+        // collectDe가 날짜, collectTime이 시각
+        LocalDateTime time = LocalDateTime.parse(
+                json.path("collectDe").asText() + " " + json.path("collectTime").asText(), SENSOR_TIME_FORMATTER);
+
+        return Waterdata.builder().tankid(tankid).time(time).wt(wt).wdo(wdo).ph(ph).sa(sa).build();
+    }
+
+    // 센서 데이터가 없으면 1개월 전(없으면 3개월 전) 같은 시각의 데이터를 현재 시각으로 복사해 사용
+    private List<Waterdata> pastData(LocalDateTime now) {
+        LocalDateTime oneMonthAgo = now.minusMonths(1);
+        log.warn("수조 데이터 없음, 1개월 전 데이터로 대체");
+        List<Waterdata> past = findAt(oneMonthAgo);
+        if (past.get(0) == null) {
+            log.warn("1개월 전 데이터도 없음, 3개월 전 데이터로 대체");
+            past = findAt(oneMonthAgo.minusMonths(2));
+        }
+        if (past.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalStateException("대체할 과거 수조 데이터 없음");
+        }
+        past.forEach(w -> {
+            w.setTime(now);
+            w.setNum(null);
+        });
+        return past;
+    }
+
+    private List<Waterdata> findAt(LocalDateTime time) {
+        return Tanks.IDS.stream().map(id -> waterdataRepository.findFistByTankidAndTime(id, time)).toList();
+    }
+
+    record SensorStatusRequest(int pageSize, int pageNumber, List<String> fcltyIds, String startDate, String endDate) {}
 }
