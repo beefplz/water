@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface WaterdataRepository extends JpaRepository<Waterdata, Long> {
-    //List<WaterMapping> findWaterdatasByTankidOrderByTimeDesc(String tankid);
 
     boolean existsByTime(LocalDateTime Time);
 

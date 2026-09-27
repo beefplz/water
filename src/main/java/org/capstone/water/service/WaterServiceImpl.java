@@ -52,10 +52,12 @@ public class WaterServiceImpl {
 
     public Waterdata getWaterdataOnewithOs(String tankid){
         Waterdata waterdata = waterdataRepository.findFirstByTankidOrderByTimeDesc(tankid);
+        if (waterdata == null) {
+            return null;
+        }
 
         // 서버에서 계산한 값을 엔티티에 설정
-        float resultOs = getOxygensaturation.getOxygensaturation(waterdata.getWt(),waterdata.getWdo());
-        waterdata.setOs(resultOs);
+        waterdata.setOs(getOxygensaturation.getOxygensaturation(waterdata.getWt(), waterdata.getWdo()));
 
         return waterdata;
     }
@@ -64,10 +66,7 @@ public class WaterServiceImpl {
     public List<Waterdata> getWaterdataWithOs(String tankid){
         List<Waterdata> waterdataList = waterdataRepository.findWaterdataByTankid(tankid);
         return waterdataList.stream()
-                .peek(entity -> {
-                    float resultOs = getOxygensaturation.getOxygensaturation(entity.getWt(),entity.getWdo());
-                    entity.setOs(resultOs);
-                })
+                .peek(entity -> entity.setOs(getOxygensaturation.getOxygensaturation(entity.getWt(), entity.getWdo())))
                 .collect(Collectors.toList());
     }
 }

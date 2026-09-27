@@ -6,7 +6,6 @@ import org.capstone.water.repository.entity.mldata.MldataView;
 import org.capstone.water.repository.entity.pdo.PdoMapping;
 import org.capstone.water.repository.entity.pdo.PredictDo;
 import org.capstone.water.repository.entity.pdoweek.PdoWeekMapping;
-import org.capstone.water.repository.entity.waterdata.WaterMapping;
 import org.capstone.water.repository.entity.waterdata.Waterdata;
 import org.capstone.water.repository.entity.weather.Weather;
 import org.capstone.water.service.WaterServiceImpl;
