@@ -23,7 +23,7 @@ public class PdoReader {
         LocalDateTime target = LocalDateTime.parse(timeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
                 .plusMinutes(30);
 
-        return FeatureMapper.TANK_IDS.stream()
+        return Tanks.IDS.stream()
                 .map(tank -> {
                     float[][] input = FeatureMapper.toInput(
                             mldataViewRepository.findMldataViewsByTankidOrderByTimeDesc(tank), INPUT_ROWS);

@@ -23,7 +23,7 @@ public class PdoWeekReader {
         LocalDateTime target = LocalDateTime.parse(timeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
                 .plusDays(7);
 
-        return FeatureMapper.TANK_IDS.stream()
+        return Tanks.IDS.stream()
                 .map(tank -> {
                     float[][] input = FeatureMapper.toInput(
                             mldataViewRepository.findMldataViewsByTankidOrderByTimeDescWeek(tank), INPUT_ROWS);

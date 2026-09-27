@@ -1,120 +1,67 @@
 package org.capstone.water.apireader;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.capstone.water.config.ApiProperties;
-import org.springframework.stereotype.Component;
-
 import org.capstone.water.repository.entity.weather.Weather;
 import org.capstone.water.repository.entity.weather.WeatherRepository;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.util.Lazy;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static org.capstone.water.apireader.JsonFields.floatOr;
+import static org.capstone.water.apireader.JsonFields.shortOr;
+
+// 국립해양조사원(khoa) 조위관측소 최신 관측값 수집
 @Component
-@RequiredArgsConstructor
 public class WeatherReader {
+    private static final Logger log = LoggerFactory.getLogger(WeatherReader.class);
+    private static final String KHOA_URL = "https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do";
+    private static final String STATION = "DT_0027";
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    private final RestClient restClient;
     private final WeatherRepository weatherRepository;
     private final ApiProperties api;
 
+    public WeatherReader(@Qualifier("apiRestClient") RestClient restClient,
+                         WeatherRepository weatherRepository, ApiProperties api) {
+        this.restClient = restClient;
+        this.weatherRepository = weatherRepository;
+        this.api = api;
+    }
 
     public Weather weatherRead(String timeString) {
-        final Logger log = LoggerFactory.getLogger(getClass());
-        String result ="";
-        try{
-            //생일도 유향 유속 풍향 TW_0081
-            URL url = new URL("https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do?ServiceKey=" + api.khoaKey() + "&ObsCode=DT_0027&ResultType=json");
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            urlConnection.setConnectTimeout(HttpTimeouts.CONNECT);
-            urlConnection.setReadTimeout(HttpTimeouts.READ);
-
-            BufferedReader bf = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
-            result = bf.readLine();
-
-            JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
-            JSONObject jresult = (JSONObject) jsonObject.get("result");
-            JSONObject jdata = (JSONObject) jresult.get("data");
-            log.debug("khoa 응답: {}", jdata.toJSONString());
-
-            //String jtime = (String) jdata.get("record_time");
-                   
-            Float jwt, jws, jsa, jat, jap, jwh;
-            Short jwd;
-
-            //Float jcd =  Float.parseFloat((String) jdata.get("current_dir"));
-            //Float jcs =  Float.parseFloat((String) jdata.get("current_speed"));
-
-            Float jcd =  0F;
-            Float jcs =  0F;
-
-            if (jdata.get("water_temp")==null){
-                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "water_temp");
-                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
-                jwt = weather.getSwt();
-            }else{
-                jwt = Float.parseFloat((String) jdata.get("water_temp"));
-            }
-            if (jdata.get("wind_dir")==null){
-                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "wind_dir");
-                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
-                jwd = weather.getWdir();
-            }else{
-                jwd = Short.parseShort((String) jdata.get("wind_dir"));
-            }
-            if (jdata.get("wind_speed")==null){
-                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "wind_speed");
-                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
-                jws = weather.getWs();
-            }else {
-                jws = Float.parseFloat((String) jdata.get("wind_speed"));
-            }
-            if (jdata.get("Salinity")==null){
-                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "Salinity");
-                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
-                jsa = weather.getSsa();
-            }else {
-                jsa = Float.parseFloat((String) jdata.get("Salinity"));
-            }
-            if (jdata.get("air_temp")==null){
-                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "air_temp");
-                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
-                jat = weather.getSat();
-            }else {
-                jat =  Float.parseFloat((String) jdata.get("air_temp"));
-            }
-            if (jdata.get("air_press")==null){
-                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "air_press");
-                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
-                jap = weather.getSap();
-            }else {
-                jap =  Float.parseFloat((String) jdata.get("air_press"));
-            }
-            if (jdata.get("tide_level")==null){
-                log.warn("기상 데이터 {} 없음, 직전 값으로 대체", "tide_level");
-                Weather weather =  weatherRepository.findFirstByOrderByTimeDesc();
-                jwh = weather.getSwh();
-            }else {
-                jwh =  Float.parseFloat((String) jdata.get("tide_level"));
-            }
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            LocalDateTime dateTime = LocalDateTime.parse(timeString, formatter);
-
-            return Weather.builder().time(dateTime).swh(jwh).swt(jwt).ssa(jsa).sat(jat).sap(jap).wdir(jwd).ws(jws).scd(jcd).scs(jcs).build();
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
+        // 서비스 키에 '/', '='가 있어 기존처럼 인코딩하지 않은 URL로 요청
+        URI uri = URI.create(KHOA_URL + "?ServiceKey=" + api.khoaKey() + "&ObsCode=" + STATION + "&ResultType=json");
+        JsonNode response = restClient.get().uri(uri).retrieve().body(JsonNode.class);
+        JsonNode data = response == null ? null : response.path("result").get("data");
+        if (data == null || !data.isObject()) {
+            throw new IllegalStateException("khoa 응답에 관측 데이터 없음: " + response);
         }
+        log.debug("khoa 응답: {}", data);
+
+        // 비어 있는 값은 가장 최근 저장값으로 채움 (필요할 때 한 번만 조회)
+        Lazy<Weather> latest = Lazy.of(weatherRepository::findFirstByOrderByTimeDesc);
+
+        return Weather.builder()
+                .time(LocalDateTime.parse(timeString, FORMATTER))
+                .swt(floatOr(data, "water_temp", "기상", () -> latest.get().getSwt()))
+                .wdir(shortOr(data, "wind_dir", "기상", () -> latest.get().getWdir()))
+                .ws(floatOr(data, "wind_speed", "기상", () -> latest.get().getWs()))
+                .ssa(floatOr(data, "Salinity", "기상", () -> latest.get().getSsa()))
+                .sat(floatOr(data, "air_temp", "기상", () -> latest.get().getSat()))
+                .sap(floatOr(data, "air_press", "기상", () -> latest.get().getSap()))
+                .swh(floatOr(data, "tide_level", "기상", () -> latest.get().getSwh()))
+                // 유향·유속은 이 관측소에서 제공하지 않아 0으로 저장
+                .scd(0F)
+                .scs(0F)
+                .build();
     }
 }

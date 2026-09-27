@@ -6,8 +6,6 @@ import java.util.List;
 
 // DB의 mldata 행을 예측 모델 입력 배열로 변환
 public final class FeatureMapper {
-    public static final List<String> TANK_IDS = List.of("iw1", "rt1", "rt2");
-
     // 16방위 구간의 상한 각도와 모델이 학습한 방위 코드. 350도 이상은 북(8)
     private static final int[] UPPER_DEGREES = {11, 34, 56, 79, 101, 124, 146, 169, 191, 214, 236, 260, 281, 304, 326, 349};
     private static final float[] DIRECTION_CODES = {8, 16, 9, 10, 11, 12, 1, 2, 3, 15, 13, 14, 4, 6, 5, 7};
