@@ -1,5 +1,9 @@
 package org.capstone.water.apireader;
 
+import lombok.RequiredArgsConstructor;
+import org.capstone.water.config.ApiProperties;
+import org.springframework.stereotype.Component;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -24,8 +28,14 @@ import java.util.Arrays;
 import java.util.List;
 
 
+@Component
+@RequiredArgsConstructor
 public class PdoWeekReader {
-    public List<PredictDoWeek> pdoweekRead(String timeString, MldataViewRepository mldataViewRepository){
+    private final MldataViewRepository mldataViewRepository;
+    private final ApiProperties api;
+
+
+    public List<PredictDoWeek> pdoweekRead(String timeString){
         final Logger log = LoggerFactory.getLogger(getClass());
         log.info("pdoweek");
 
@@ -67,7 +77,7 @@ public class PdoWeekReader {
                 + "}";
 
         log.info(jsonInputString);
-        String url = "http://220.66.149.122:16010/v2/models/predictdoweek/infer";
+        String url = api.tritonUrl() + "/v2/models/predictdoweek/infer";
         result1 = getStringMLPost(log, jsonInputString, url);
         JSONParser jsonParser = new JSONParser();
         output1 = (double) Math.round(getOutputData(log, result1, jsonParser) * 100) /100;

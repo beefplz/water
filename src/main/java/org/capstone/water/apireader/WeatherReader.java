@@ -1,5 +1,9 @@
 package org.capstone.water.apireader;
 
+import lombok.RequiredArgsConstructor;
+import org.capstone.water.config.ApiProperties;
+import org.springframework.stereotype.Component;
+
 import org.capstone.water.repository.entity.weather.Weather;
 import org.capstone.water.repository.entity.weather.WeatherRepository;
 import org.json.simple.JSONObject;
@@ -17,15 +21,20 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Component
+@RequiredArgsConstructor
 public class WeatherReader {
-    public Weather weatherRead(String timeString, WeatherRepository weatherRepository) {
+    private final WeatherRepository weatherRepository;
+    private final ApiProperties api;
+
+
+    public Weather weatherRead(String timeString) {
         final Logger log = LoggerFactory.getLogger(getClass());
         String result ="";
         log.info("weather");
         try{
             //생일도 유향 유속 풍향 TW_0081
-            URL url = new URL("https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=DT_0027&ResultType=json");
-            //URL url = new URL("https://www.khoa.go.kr/api/oceangrid/buObsRecent/search.do?ServiceKey=oldpJ/aIMLBu4ktr1g777Q==&ObsCode=TW_0081&ResultType=json");
+            URL url = new URL("https://www.khoa.go.kr/api/oceangrid/tideObsRecent/search.do?ServiceKey=" + api.khoaKey() + "&ObsCode=DT_0027&ResultType=json");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
 

@@ -1,7 +1,6 @@
 package org.capstone.water.apireader;
 
 import lombok.RequiredArgsConstructor;
-import org.capstone.water.repository.entity.mldata.MldataViewRepository;
 import org.capstone.water.repository.entity.pdo.PredictDo;
 import org.capstone.water.repository.entity.pdo.PredictDoRepository;
 import org.capstone.water.repository.entity.pdoweek.PredictDoWeek;
@@ -27,8 +26,11 @@ public class Scheduler {
     private final WaterdataRepository waterdataRepository;
     private final WeatherRepository weatherRepository;
     private final PredictDoRepository predictDoRepository;
-    private final MldataViewRepository mldataViewRepository;
-    private final PredictDoWeekRepository predictDoWeekRepository;;
+    private final PredictDoWeekRepository predictDoWeekRepository;
+    private final WeatherReader weatherReader;
+    private final WaterReader waterReader;
+    private final PdoReader pdoReader;
+    private final PdoWeekReader pdoWeekReader;
     final Logger log = LoggerFactory.getLogger(getClass());
     @Scheduled(fixedRate = 60000)
     public void run() {
@@ -37,8 +39,7 @@ public class Scheduler {
         String localDateTimeString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         log.info(localDateTimeString);
 
-        WeatherReader weatherReader = new WeatherReader();
-        Weather weather = weatherReader.weatherRead(localDateTimeString, weatherRepository);
+        Weather weather = weatherReader.weatherRead(localDateTimeString);
         if (weatherRepository.existsByTime(weather.getTime())){
             log.info("weather already exist");
         }
@@ -46,8 +47,7 @@ public class Scheduler {
             weatherRepository.save(weather);
         }
 
-        WaterReader waterReader = new WaterReader();
-        List<Waterdata> waterdataList = waterReader.waterRead(localDateTimeString, waterdataRepository);
+        List<Waterdata> waterdataList = waterReader.waterRead(localDateTimeString);
         if (waterdataRepository.existsByTime(waterdataList.get(0).getTime())){
             log.info("water already exist");
         }
@@ -57,8 +57,7 @@ public class Scheduler {
             waterdataRepository.save(waterdataList.get(2));
         }
 
-        PdoReader pdoReader = new PdoReader();
-        List<PredictDo> predictDoList = pdoReader.pdoRead(localDateTimeString, mldataViewRepository);
+        List<PredictDo> predictDoList = pdoReader.pdoRead(localDateTimeString);
         if(predictDoRepository.existsByTime(predictDoList.get(0).getTime())){
             log.info("predict do already exist");
         }
@@ -68,8 +67,7 @@ public class Scheduler {
             predictDoRepository.save(predictDoList.get(2));
         }
 
-        PdoWeekReader pdoWeekReader = new PdoWeekReader();
-        List<PredictDoWeek> predictDoWeekList = pdoWeekReader.pdoweekRead(localDateTimeString, mldataViewRepository);
+        List<PredictDoWeek> predictDoWeekList = pdoWeekReader.pdoweekRead(localDateTimeString);
         if(predictDoWeekRepository.existsByTime(predictDoList.get(0).getTime())){
             log.info("predict do already exist");
         }

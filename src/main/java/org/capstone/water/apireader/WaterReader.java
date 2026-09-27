@@ -1,6 +1,10 @@
 package org.capstone.water.apireader;
 
 import lombok.RequiredArgsConstructor;
+import org.capstone.water.config.ApiProperties;
+import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 import org.capstone.water.repository.entity.waterdata.Waterdata;
 import org.capstone.water.repository.entity.waterdata.WaterdataRepository;
 import org.json.simple.JSONArray;
@@ -26,14 +30,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@Component
 @RequiredArgsConstructor
 public class WaterReader {
-    public List<Waterdata> waterRead(String timeString, WaterdataRepository waterdataRepository) {
+    private final WaterdataRepository waterdataRepository;
+    private final ApiProperties api;
+
+
+    public List<Waterdata> waterRead(String timeString) {
         final Logger log = LoggerFactory.getLogger(getClass());
         String result ="";
         log.info("water");
         try {
-            URL urlf = new URL("http://aqua.kware.co.kr:/openapi/v1/acesstoken?key=4b5df6236c40559098c463738fd3db9e07879a5015dd4896c2ccfd477d0a2082");
+            URL urlf = new URL("http://aqua.kware.co.kr:/openapi/v1/acesstoken?key=" + api.kwareKey());
             HttpURLConnection urlConnectionf = (HttpURLConnection) urlf.openConnection();
             urlConnectionf.setRequestMethod("POST");
 
