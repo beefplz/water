@@ -37,6 +37,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 }
 
+// bootJar(실행용)만 만들고 plain jar는 만들지 않음 (Docker에서 build/libs/*.jar가 하나만 잡히도록)
+jar {
+	enabled = false
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
