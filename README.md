@@ -33,14 +33,7 @@
 
 ## 시스템 구성
 
-```mermaid
-flowchart LR
-    KHOA[국립해양조사원<br/>조위관측소 API] -->|해양 기상| S
-    KWARE[kware<br/>양식장 센서 API] -->|수조 센서| S
-    S[메인 서버<br/>Spring Boot<br/>매분 수집·예측] <-->|수집값·예측값 저장 / 조회| DB[(MariaDB)]
-    S <-->|추론 요청| T[모델 서빙 서버<br/>Triton · GRU / LSTM]
-    S -->|REST API| FE[React 대시보드]
-```
+![시스템 아키텍처](docs/images/architecture.png)
 
 ### 수집과 예측 흐름 (매분 0초)
 
@@ -146,6 +139,10 @@ curl http://localhost:7355/actuator/health
 | `KWARE_KEY` | kware 양식장 센서 API 키 |
 | `TRITON_URL` | Triton 서버 주소 (예: `http://localhost:8000`) |
 | `APP_SCHEDULING_ENABLED` | 수집 스케줄러 사용 여부 (기본 `true`) |
+
+## DB 구조
+
+![DB 구조](docs/images/erd.png)
 
 ## 프로젝트 구조
 
